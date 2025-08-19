@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout Timer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .input-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .input-section h2 {
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 14px;
+            color: #333;
+            resize: vertical;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        button:disabled {
+            background: rgba(255, 255, 255, 0.3);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .timer-display {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .timer-display.hidden {
+            display: none;
+        }
+
+        .current-time {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .current-interval {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .interval-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            text-align: center;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 10px;
+        }
+
+        .info-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.2);
+            height: 8px;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #00f5ff, #0099ff);
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .workout-list {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .workout-list.hidden {
+            display: none;
+        }
+
+        .interval-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 15px;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .interval-item.active {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .interval-time {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .interval-details {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .detail {
+            font-size: 0.95rem;
+        }
+
+        .detail strong {
+            color: #ffeb3b;
+        }
+
+        @media (max-width: 600px) {
+            .current-time {
+                font-size: 2.5rem;
+            }
+            
+            .interval-item {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            
+            .interval-details {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏃‍♂️ Workout Timer</h1>
+            <p>Paste your workout format and follow along with the timer</p>
+        </div>
+
+        <div class="input-section">
+            <h2>📝 Paste Your Workout</h2>
+            <textarea id="workoutInput" placeholder="Paste your workout format here...
+
+Example:
+0:00–3:00 3.5–4.0 1% Warm-up walk
+3:00–5:00 5.5–6.0 1% Easy jog
+5:00–7:00 6.0–6.5 4% Run uphill"></textarea>
+            
+            <div class="buttons">
+                <button onclick="parseWorkout()">📊 Parse Workout</button>
+                <button id="startBtn" onclick="startWorkout()" disabled>▶️ Start Workout</button>
+                <button id="pauseBtn" onclick="pauseWorkout()" disabled>⏸️ Pause</button>
+                <button id="resetBtn" onclick="resetWorkout()" disabled>🔄 Reset</button>
+                <button id="beepBtn" onclick="toggleBeeps()">🔔 Beeps: ON</button>
+            </div>
+            
+            <div class="buttons" style="margin-top: 10px;">
+                <button id="prevBtn" onclick="previousInterval()" disabled>⏮️ Previous</button>
+                <button id="nextBtn" onclick="nextInterval()" disabled>⏭️ Next</button>
+            </div>
+        </div>
+
+        <div id="timerDisplay" class="timer-display hidden">
+            <div class="current-time" id="currentTime">00:00</div>
+            
+            <div class="current-interval">
+                <div class="interval-info">
+                    <div class="info-item">
+                        <div class="info-label">Speed</div>
+                        <div class="info-value" id="currentSpeed">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Incline</div>
+                        <div class="info-value" id="currentIncline">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Focus</div>
+                        <div class="info-value" id="currentFocus">-</div>
+                    </div>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+                
+                <div id="nextInterval" style="opacity: 0.7; margin-top: 10px;">
+                    Next: <span id="nextIntervalText">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="workoutList" class="workout-list hidden">
+            <h2>📋 Workout Plan</h2>
+            <div id="intervalsList"></div>
+        </div>
+    </div>
+
+    <script>
+        let intervals = [];
+        let currentIntervalIndex = 0;
+        let startTime = null;
+        let elapsedTime = 0;
+        let timerInterval = null;
+        let isRunning = false;
+        let isPaused = false;
+        let audioContext = null;
+        let enableBeeps = true;
+        let lastBeepTime = -1;
+
+        function parseTime(timeStr) {
+            const parts = timeStr.split(':');
+            return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playBeep(frequency = 800, duration = 200, type = 'single') {
+            if (!enableBeeps) return;
+            
+            initAudio();
+            
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+
+            if (type === 'double') {
+                // Double beep for interval changes
+                playTone(frequency, duration * 0.4);
+                setTimeout(() => playTone(frequency, duration * 0.4), duration * 0.6);
+            } else if (type === 'triple') {
+                // Triple beep for workout end
+                playTone(frequency, duration * 0.3);
+                setTimeout(() => playTone(frequency, duration * 0.3), duration * 0.4);
+                setTimeout(() => playTone(frequency, duration * 0.3), duration * 0.8);
+            } else {
+                // Single beep for countdown
+                playTone(frequency, duration);
+            }
+        }
+
+        function playTone(frequency, duration) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration / 1000);
+        }
+
+        function toggleBeeps() {
+            enableBeeps = !enableBeeps;
+            const btn = document.getElementById('beepBtn');
+            btn.textContent = enableBeeps ? '🔔 Beeps: ON' : '🔕 Beeps: OFF';
+            btn.style.opacity = enableBeeps ? '1' : '0.6';
+            
+            if (enableBeeps) {
+                // Test beep when enabling
+                playBeep(600, 150);
+            }
+        }
+
+        function parseWorkout() {
+            const input = document.getElementById('workoutInput').value.trim();
+            if (!input) {
+                alert('Please paste your workout first!');
+                return;
+            }
+
+            intervals = [];
+            const lines = input.split('\n').filter(line => line.trim());
+
+            for (const line of lines) {
+                // Parse line with regex to handle various formats
+                const match = line.match(/(\d+:\d+)[-–](\d+:\d+)\s*([0-9.–-]+)\s*([0-9%]+)\s*(.+)/);
+                
+                if (match) {
+                    const [, startTime, endTime, speed, incline, focus] = match;
+                    
+                    intervals.push({
+                        startTime: parseTime(startTime),
+                        endTime: parseTime(endTime),
+                        speed: speed.trim(),
+                        incline: incline.trim(),
+                        focus: focus.trim()
+                    });
+                }
+            }
+
+            if (intervals.length === 0) {
+                alert('Could not parse workout. Please check the format.');
+                return;
+            }
+
+            displayWorkoutList();
+            updateButtonStates();
+            document.getElementById('timerDisplay').classList.remove('hidden');
+            document.getElementById('workoutList').classList.remove('hidden');
+            
+            resetWorkout();
+        }
+
+        function displayWorkoutList() {
+            const listContainer = document.getElementById('intervalsList');
+            listContainer.innerHTML = '';
+
+            intervals.forEach((interval, index) => {
+                const div = document.createElement('div');
+                div.className = 'interval-item';
+                div.id = `interval-${index}`;
+                
+                div.innerHTML = `
+                    <div class="interval-time">
+                        ${formatTime(interval.startTime)}–${formatTime(interval.endTime)}
+                    </div>
+                    <div class="interval-details">
+                        <div class="detail"><strong>Speed:</strong> ${interval.speed}</div>
+                        <div class="detail"><strong>Incline:</strong> ${interval.incline}</div>
+                        <div class="detail"><strong>Focus:</strong> ${interval.focus}</div>
+                    </div>
+                `;
+                
+                listContainer.appendChild(div);
+            });
+        }
+
+        function startWorkout() {
+            if (intervals.length === 0) {
+                alert('Please parse a workout first!');
+                return;
+            }
+
+            if (isPaused) {
+                // Resume from pause
+                startTime = Date.now() - elapsedTime * 1000;
+                isPaused = false;
+            } else {
+                // Start fresh
+                startTime = Date.now();
+                elapsedTime = 0;
+                currentIntervalIndex = 0;
+            }
+
+            isRunning = true;
+            updateButtonStates();
+
+            timerInterval = setInterval(updateTimer, 100);
+        }
+
+        function pauseWorkout() {
+            if (!isRunning) return;
+
+            isRunning = false;
+            isPaused = true;
+            clearInterval(timerInterval);
+
+            updateButtonStates();
+        }
+
+        function resetWorkout() {
+            isRunning = false;
+            isPaused = false;
+            elapsedTime = 0;
+            currentIntervalIndex = 0;
+            
+            clearInterval(timerInterval);
+
+            updateButtonStates();
+
+            document.getElementById('currentTime').textContent = '00:00';
+            document.getElementById('progressFill').style.width = '0%';
+
+            // Clear active interval highlighting
+            document.querySelectorAll('.interval-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            if (intervals.length > 0) {
+                updateDisplay();
+            }
+        }
+
+        function nextInterval() {
+            if (currentIntervalIndex < intervals.length - 1) {
+                // Remove highlight from current interval
+                const currentElement = document.getElementById(`interval-${currentIntervalIndex}`);
+                if (currentElement) currentElement.classList.remove('active');
+                
+                currentIntervalIndex++;
+                elapsedTime = intervals[currentIntervalIndex].startTime;
+                lastBeepTime = -1; // Reset beep tracking
+                
+                // Update start time to maintain sync
+                if (isRunning) {
+                    startTime = Date.now() - elapsedTime * 1000;
+                }
+                
+                // Highlight new current interval
+                const newElement = document.getElementById(`interval-${currentIntervalIndex}`);
+                if (newElement) newElement.classList.add('active');
+                
+                updateDisplay();
+                updateButtonStates();
+                
+                // Play transition beep
+                playBeep(1200, 100);
+            }
+        }
+
+        function previousInterval() {
+            if (currentIntervalIndex > 0) {
+                // Remove highlight from current interval
+                const currentElement = document.getElementById(`interval-${currentIntervalIndex}`);
+                if (currentElement) currentElement.classList.remove('active');
+                
+                currentIntervalIndex--;
+                elapsedTime = intervals[currentIntervalIndex].startTime;
+                lastBeepTime = -1; // Reset beep tracking
+                
+                // Update start time to maintain sync
+                if (isRunning) {
+                    startTime = Date.now() - elapsedTime * 1000;
+                }
+                
+                // Highlight new current interval
+                const newElement = document.getElementById(`interval-${currentIntervalIndex}`);
+                if (newElement) newElement.classList.add('active');
+                
+                updateDisplay();
+                updateButtonStates();
+                
+                // Play transition beep
+                playBeep(600, 100);
+            }
+        }
+
+        function updateButtonStates() {
+            const hasIntervals = intervals.length > 0;
+            
+            document.getElementById('startBtn').disabled = !hasIntervals || isRunning;
+            document.getElementById('pauseBtn').disabled = !isRunning;
+            document.getElementById('resetBtn').disabled = !hasIntervals || (!isRunning && !isPaused);
+            document.getElementById('prevBtn').disabled = !hasIntervals || currentIntervalIndex === 0;
+            document.getElementById('nextBtn').disabled = !hasIntervals || currentIntervalIndex >= intervals.length - 1;
+        }
+
+        function updateTimer() {
+            const now = Date.now();
+            elapsedTime = Math.floor((now - startTime) / 1000);
+            
+            // Find current interval
+            let newIntervalIndex = currentIntervalIndex;
+            for (let i = 0; i < intervals.length; i++) {
+                if (elapsedTime >= intervals[i].startTime && elapsedTime < intervals[i].endTime) {
+                    newIntervalIndex = i;
+                    break;
+                }
+            }
+
+            // Check if workout is complete
+            if (elapsedTime >= intervals[intervals.length - 1].endTime) {
+                pauseWorkout();
+                playBeep(800, 200, 'triple'); // Triple beep for completion
+                alert('🎉 Workout Complete! Great job!');
+                return;
+            }
+
+            // Update current interval if changed
+            if (newIntervalIndex !== currentIntervalIndex) {
+                // Remove highlight from previous interval
+                const prevElement = document.getElementById(`interval-${currentIntervalIndex}`);
+                if (prevElement) prevElement.classList.remove('active');
+                
+                currentIntervalIndex = newIntervalIndex;
+                
+                // Highlight current interval
+                const currentElement = document.getElementById(`interval-${currentIntervalIndex}`);
+                if (currentElement) currentElement.classList.add('active');
+                
+                // Play double beep for interval change
+                playBeep(1000, 150, 'double');
+                lastBeepTime = -1; // Reset beep tracking for new interval
+            }
+
+            // Check for countdown beeps (10, 5, 4, 3, 2, 1 seconds before interval change)
+            const current = intervals[currentIntervalIndex];
+            if (current) {
+                const timeUntilNext = current.endTime - elapsedTime;
+                
+                // Only beep if we haven't beeped for this exact second yet
+                if (timeUntilNext !== lastBeepTime) {
+                    if (timeUntilNext === 10) {
+                        playBeep(600, 100); // Lower tone for 10 second warning
+                        lastBeepTime = timeUntilNext;
+                    } else if (timeUntilNext <= 5 && timeUntilNext >= 1) {
+                        playBeep(800, 100); // Higher tone for final countdown
+                        lastBeepTime = timeUntilNext;
+                    }
+                }
+            }
+
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            document.getElementById('currentTime').textContent = formatTime(elapsedTime);
+            
+            if (intervals.length > 0 && currentIntervalIndex < intervals.length) {
+                const current = intervals[currentIntervalIndex];
+                
+                document.getElementById('currentSpeed').textContent = current.speed;
+                document.getElementById('currentIncline').textContent = current.incline;
+                document.getElementById('currentFocus').textContent = current.focus;
+                
+                // Calculate progress within current interval
+                const intervalProgress = (elapsedTime - current.startTime) / (current.endTime - current.startTime);
+                const progressPercent = Math.max(0, Math.min(100, intervalProgress * 100));
+                document.getElementById('progressFill').style.width = `${progressPercent}%`;
+                
+                // Show next interval
+                const nextIndex = currentIntervalIndex + 1;
+                if (nextIndex < intervals.length) {
+                    const next = intervals[nextIndex];
+                    document.getElementById('nextIntervalText').textContent = 
+                        `${next.speed} @ ${next.incline} - ${next.focus}`;
+                } else {
+                    document.getElementById('nextIntervalText').textContent = 'Workout Complete!';
+                }
+            }
+        }
+
+        // Add sample workout on load
+        window.addEventListener('load', () => {
+            const sampleWorkout = `0:00–3:00 3.5–4.0 1% Warm-up walk
+3:00–5:00 5.5–6.0 1% Easy jog
+5:00–7:00 6.0–6.5 4% Run uphill
+7:00–8:00 3.5–4.0 2% Recovery walk
+8:00–10:00 6.0–6.5 6% Steady climb
+10:00–11:00 3.5–4.0 2% Recovery walk
+11:00–13:00 6.5 8% Hill run
+13:00–14:00 3.5–4.0 2% Recovery walk
+14:00–16:00 6.0–6.5 10% Big hill
+16:00–17:00 3.5–4.0 2% Recovery walk
+17:00–19:00 6.0 6% Steady uphill run
+19:00–20:00 3.5–4.0 2% Recovery walk
+20:00–22:00 6.0–6.5 8% Push climb
+22:00–23:00 3.5–4.0 2% Recovery walk
+23:00–25:00 6.5 5% Final hill run
+25:00–28:00 3.5–4.0 2% Cool-down walk
+28:00–30:00 3.0 0% Easy walk & heart rate drop`;
+            
+            document.getElementById('workoutInput').value = sampleWorkout;
+        });
+    </script>
+</body>
+</html>
